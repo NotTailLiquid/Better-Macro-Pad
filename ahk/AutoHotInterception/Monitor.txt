@@ -1,0 +1,36 @@
+#SingleInstance Force
+#Persistent
+#include Lib\AutoHotInterception.ahk
+
+AHI := new AutoHotInterception()
+
+DeviceList := AHI.GetDeviceList()
+
+; Subscribe to all keyboard devices (first 10 IDs by default)
+Loop 10 {
+    id := A_Index
+    dev := DeviceList[id]
+    if (!IsObject(dev)) {
+        continue
+    }
+    AHI.SubscribeKeyboard(id, false, Func("ShowVIDPID").Bind(dev.VID, dev.PID))
+}
+
+ShowVIDPID(vid, pid, code, state) {
+    if (state = 1) ; Only show on key down
+    {
+        ToolTip, Pressed key from device:
+        (LTrim
+        VID: 0x%vid%
+        PID: 0x%pid%
+        )
+        SetTimer, ClearToolTip, -1500
+    }
+}
+
+ClearToolTip:
+ToolTip
+return
+
+GuiClose:
+ExitApp
